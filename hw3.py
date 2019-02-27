@@ -456,7 +456,7 @@ for iob_sent in NERNP_taggedIOB2013:
 
 
 '''
-Train Classifier
+Train Classifier on entire dataset
 '''
 # CEO, COMP, PCT, and NP chunks
 random.shuffle(NERNP_tagged2013)
@@ -465,50 +465,15 @@ test_sents = NERNP_tagged2013[len(NERNP_tagged2013)//4:]
 NERNP_chunker = ConsecutiveNERChunker(train_sents)     
 print(NERNP_chunker.evaluate(test_sents))
 
-full_model = ConsecutiveNERChunker(NERNP_tagged2013)
-
 a ='CEO Bill Gates owns Microsoft and gained 20%.'
 a = nltk.word_tokenize(a)
 a = nltk.pos_tag(a)
-
 print(NERNP_chunker.parse(a))
 
 a ='Billy Bob likes to cook food'
 a = nltk.word_tokenize(a)
 a = nltk.pos_tag(a)
-
 print(NERNP_chunker.parse(a))
-
-predicted_CEOs = []
-predicted_COMPs = []
-predicted_PCTs = []
-for sent in pos_taggedSentences2013:
-    CEO_sent = NERNP_chunker.parse(sent)
-    for index, subtree in enumerate(CEO_sent):
-        if (type(subtree) != tuple):
-            s = extract_str(subtree)
-            if (subtree.label() == 'CEO'):
-                predicted_CEOs.append(s)
-            elif (subtree.label() == 'COMP'): 
-                predicted_COMPs.append(s)
-            elif (subtree.label() == 'PCT'):
-                predicted_PCTs.append(s)
-
-import csv
-with open('predicted_ceo.csv','wb') as file:
-    for line in predicted_CEOs:
-        file.write(line.encode('UTF-8'))
-        file.write('\n'.encode('UTF-8'))
-
-with open('predicted_comp.csv','wb') as file:
-    for line in predicted_COMPs:
-        file.write(line.encode('UTF-8'))
-        file.write('\n'.encode('UTF-8'))
-
-with open('predicted_percentage.csv','wb') as file:
-    for line in predicted_PCTs:
-        file.write(line.encode('UTF-8'))
-        file.write('\n'.encode('UTF-8'))
 
 # only CEO, COMP, and PCT chunks
 random.shuffle(NER_only_tagged2013)
@@ -517,16 +482,6 @@ test_sents = NER_only_tagged2013[len(NER_only_tagged2013)//4:]
 
 NER_only_chunker = ConsecutiveNERChunker(train_sents)     
 print(NER_only_chunker.evaluate(test_sents))
-
-a ='Bill Gates owns Microsoft and gained 20% returns.'
-a = nltk.word_tokenize(a)
-a = nltk.pos_tag(a)
-print(NER_only_chunker.parse(a))
-
-a ='The dog jumped over the brown fence.'
-a = nltk.word_tokenize(a)
-a = nltk.pos_tag(a)
-print(NER_only_chunker.parse(a))
 
 
 '''
@@ -552,3 +507,47 @@ train_sents = biased_sample[:len(biased_sample)//4]
 test_sents = biased_sample[len(biased_sample)//4:]
 NER_only_chunker = ConsecutiveNERChunker(train_sents)     
 print(NER_only_chunker.evaluate(test_sents))
+
+full_model = ConsecutiveNERChunker(biased_sample)
+
+a ='Bill Gates owns Microsoft and gained 20% returns.'
+a = nltk.word_tokenize(a)
+a = nltk.pos_tag(a)
+print(full_model.parse(a))
+
+a ='The dog jumped over the brown fence.'
+a = nltk.word_tokenize(a)
+a = nltk.pos_tag(a)
+print(full_model.parse(a))
+
+predicted_CEOs = []
+predicted_COMPs = []
+predicted_PCTs = []
+for sent in pos_taggedSentences2013:
+    NER_sent = full_model.parse(sent)
+    for index, subtree in enumerate(NER_sent):
+        if (type(subtree) != tuple):
+            s = extract_str(subtree)
+            if (subtree.label() == 'CEO'):
+                predicted_CEOs.append(s)
+            elif (subtree.label() == 'COMP'): 
+                predicted_COMPs.append(s)
+            elif (subtree.label() == 'PCT'):
+                predicted_PCTs.append(s)
+
+import csv
+with open('predicted_ceo.csv','wb') as file:
+    for line in predicted_CEOs:
+        file.write(line.encode('UTF-8'))
+        file.write('\n'.encode('UTF-8'))
+
+with open('predicted_comp.csv','wb') as file:
+    for line in predicted_COMPs:
+        file.write(line.encode('UTF-8'))
+        file.write('\n'.encode('UTF-8'))
+
+with open('predicted_percentage.csv','wb') as file:
+    for line in predicted_PCTs:
+        file.write(line.encode('UTF-8'))
+        file.write('\n'.encode('UTF-8'))
+        
